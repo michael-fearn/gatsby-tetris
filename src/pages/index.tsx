@@ -2,11 +2,13 @@ import React, { useState, useEffect, useCallback } from "react"
 
 import { Board } from "../components/board"
 import { useTetris } from "../hooks/tetris"
+import { Coordinate } from "../types"
 
 const IndexPage = () => {
+  const [dimensions, setDimensions] = useState<Coordinate>([16, 10])
+
   const {
     allCoordinates,
-    dimensions,
     nextTetrimino,
     activeTetrimino,
     setBrickPosition,
@@ -16,22 +18,21 @@ const IndexPage = () => {
     moveDown,
     rotateCounterClockwise,
     replaceCurrentTetrimino,
-    addStationaryCoordinates, // for testing, handled by
-  } = useTetris([16, 16])
+    addStationaryCoordinates, // for testing
+  } = useTetris(dimensions)
 
   const setBrickCallback = useCallback(() => {
     replaceCurrentTetrimino()
     setBrickPosition([1, Math.floor(dimensions[1] / 2 + 1)])
   }, [])
 
-
   useEffect(() => {
-    const down = event => (event.key === 'ArrowDown' ? moveDown() : null)
-    const left = event => (event.key === 'ArrowLeft' ? moveLeft() : null)
+    const down = event => (event.key === "ArrowDown" ? moveDown() : null)
+    const left = event => (event.key === "ArrowLeft" ? moveLeft() : null)
     const right = event => (event.key === "ArrowRight" ? moveRight() : null)
-    const clockwise = event => (event.key === 'w' ? rotateClockwise() : null)
+    const clockwise = event => (event.key === "w" ? rotateClockwise() : null)
     const counterClockwise = event =>
-      event.key === 'q' ? rotateCounterClockwise() : null
+      event.key === "q" ? rotateCounterClockwise() : null
     window.addEventListener("keydown", down)
     window.addEventListener("keydown", left)
     window.addEventListener("keydown", right)
@@ -50,6 +51,23 @@ const IndexPage = () => {
   return (
     <div>
       <Board dimensions={dimensions} points={allCoordinates} />
+      <label htmlFor="">Height</label>
+      <input
+        type="number"
+        value={dimensions[0]}
+        onChange={event =>
+          setDimensions([Number(event.target.value), dimensions[1]])
+        }
+      />
+      <label htmlFor="">width</label>
+      <input
+        type="number"
+        value={dimensions[1]}
+        onChange={event =>
+          setDimensions([dimensions[0], Number(event.target.value)])
+        }
+      />
+      <br />
       <button onClick={rotateClockwise}>Clockwise</button>
       <button onClick={rotateCounterClockwise}>CounterClockwise</button>
       <br />
