@@ -1,110 +1,69 @@
 import React, { useState, useEffect, useCallback } from "react"
-import { Link } from "gatsby"
 
-import Layout from "../components/layout"
-import Image from "../components/image"
-import SEO from "../components/seo"
 import { Board } from "../components/board"
-import { useTetriminos, ITetrimino } from "../hooks/tetriminos"
-
-import { useCoordinates } from "../hooks/coordinates"
-import { useMovement } from "../hooks/movement"
-
-// function useMovement(activeBlock: BaseBlock) {}
-
-function useTetris(dimensions: [number, number]) {
-  const [brickPosition, setBrickPosition] = useState<[number, number]>([
-    1,
-    Math.floor(dimensions[1] / 2 + 1),
-  ])
-  const {
-    activeTetrimino,
-    setActiveTetrimino,
-    nextTetrimino,
-    replaceCurrentTetrimino,
-  } = useTetriminos(dimensions)
-
-  // const [positionedTetrimino, setPositionedTetrimino] = useState<ITetrimino>({
-  //   color: activeTetrimino.color,
-  //   coordinates: activeTetrimino.coordinates.map(coordinate => [
-  //     brickPosition[0] + coordinate[0],
-  //     brickPosition[1] + coordinate[1],
-  //   ]),
-  // })
-
-  // useEffect(() => {
-  //   setPositionedTetrimino({
-  //     color: activeTetrimino.color,
-  //     coordinates: activeTetrimino.coordinates.map(coordinate => [
-  //       brickPosition[0] + coordinate[0],
-  //       brickPosition[1] + coordinate[1],
-  //     ]),
-  //   })
-  // }, [activeTetrimino, brickPosition])
-  // // const positionedTetrimino = useCallback(() => {
-  // return  as ITetrimino
-  // }, [activeTetrimino, brickPosition])
-
-  const {
-    allCoordinates,
-    stationaryBrickCoordinates,
-    addStationaryCoordinates,
-  } = useCoordinates(activeTetrimino, dimensions)
-
-  const {
-    moveDown,
-    moveLeft,
-    moveRight,
-    rotateClockwise,
-    rotateCounterClockwise,
-  } = useMovement(
-    activeTetrimino,
-    setActiveTetrimino,
-    dimensions,
-    stationaryBrickCoordinates
-  )
-
-  return {
-    allCoordinates,
-    dimensions,
-    activeTetrimino,
-    rotateClockwise,
-    brickPosition,
-    setBrickPosition,
-    moveLeft,
-    moveRight,
-    moveDown,
-    rotateCounterClockwise,
-    replaceCurrentTetrimino,
-    addStationaryCoordinates,
-  }
-}
+import { useTetris } from "../hooks/tetris"
 
 const IndexPage = () => {
   const {
     allCoordinates,
     dimensions,
-    brickPosition,
+    nextTetrimino,
+    activeTetrimino,
+    setBrickPosition,
+    rotateClockwise,
     moveLeft,
     moveRight,
-    setBrickPosition,
-    rotateCounterClockwise,
-    rotateClockwise,
     moveDown,
-    addStationaryCoordinates,
-  } = useTetris([16, 6])
+    rotateCounterClockwise,
+    replaceCurrentTetrimino,
+    addStationaryCoordinates, // for testing, handled by
+  } = useTetris([16, 16])
 
-  // const allCoordinates = {}
-  // const dimensions: [number, number] = [5, 5]
+  const setBrickCallback = useCallback(() => {
+    replaceCurrentTetrimino()
+    setBrickPosition([1, Math.floor(dimensions[1] / 2 + 1)])
+  }, [])
+
+
+  useEffect(() => {
+    const down = event => (event.key === 'ArrowDown' ? moveDown() : null)
+    const left = event => (event.key === 'ArrowLeft' ? moveLeft() : null)
+    const right = event => (event.key === "ArrowRight" ? moveRight() : null)
+    const clockwise = event => (event.key === 'w' ? rotateClockwise() : null)
+    const counterClockwise = event =>
+      event.key === 'q' ? rotateCounterClockwise() : null
+    window.addEventListener("keydown", down)
+    window.addEventListener("keydown", left)
+    window.addEventListener("keydown", right)
+    window.addEventListener("keydown", clockwise)
+    window.addEventListener("keydown", counterClockwise)
+
+    return () => {
+      window.removeEventListener("keydown", down)
+      window.removeEventListener("keydown", left)
+      window.removeEventListener("keydown", right)
+      window.removeEventListener("keydown", clockwise)
+      window.removeEventListener("keydown", counterClockwise)
+    }
+  }, [moveDown, moveLeft, moveRight])
+
   return (
     <div>
       <Board dimensions={dimensions} points={allCoordinates} />
       <button onClick={rotateClockwise}>Clockwise</button>
       <button onClick={rotateCounterClockwise}>CounterClockwise</button>
-      <button onClick={addStationaryCoordinates}>RemoveAffectedRows</button>
-      <button onClick={() => moveDown(() => {})}>Move Down</button>
-      <button onClick={moveLeft}>left</button>
+      <br />
+      <button onClick={moveLeft} onKeyDown={event => console.log(event)}>
+        left
+      </button>
+      <button onClick={moveDown}>Move Down</button>
       <button onClick={moveRight}>moveRight</button>
+      <br />
+      <button onClick={replaceCurrentTetrimino}>Next Brick</button>
+      <br />
+      <button onClick={() => addStationaryCoordinates(setBrickCallback)}>
+        Set Brick
+      </button>
     </div>
   )
 }

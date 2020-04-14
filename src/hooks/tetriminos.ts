@@ -84,35 +84,7 @@ const getRandomTetriminos = () => {
 export const useTetriminos = (dimensions: Dimensions) => {
   const [activeTetrimino, setActiveTetrimino] = useState(getRandomTetriminos())
   const [nextTetrimino, setNextTetrimino] = useState(getRandomTetriminos())
-  // const [brickPosition, setBrickPosition] = useState<[number, number]>([0, 0])
-  useEffect(() => {
-    setActiveTetrimino({
-      color: activeTetrimino.color,
-      coordinates: activeTetrimino.coordinates.map(coordinate => [
-        1 + coordinate[0],
-        3 + coordinate[1],
-      ]),
-    })
-  }, [])
-  // const [positionedTetrimino, setPositionedTetrimino] = useState<ITetrimino>({
-  //   color: activeTetrimino.color,
-  //   coordinates: activeTetrimino.coordinates.map(coordinate => [
-  //     brickPosition[0] + coordinate[0],
-  //     brickPosition[1] + coordinate[1],
-  //   ]),
-  // })
 
-  // const
-
-  // useEffect(() => {
-  //   setBrickPosition({
-  //     color: activeTetrimino.color,
-  //     coordinates: activeTetrimino.coordinates.map(coordinate => [
-  //       brickPosition[0] + coordinate[0],
-  //       brickPosition[1] + coordinate[1],
-  //     ]),
-  //   })
-  // }, [activeTetrimino, brickPosition])
   const replaceCurrentTetrimino = useCallback(() => {
     setActiveTetrimino(nextTetrimino)
     setNextTetrimino(getRandomTetriminos())

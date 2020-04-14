@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from "react"
 import { ITetrimino } from "./tetriminos"
-import { Dimensions, CoordinateDictionary, CoordinateIndex } from "../types"
+import {
+  Dimensions,
+  CoordinateDictionary,
+  CoordinateIndex,
+  Coordinate,
+} from "../types"
+import { positionTetrimino } from "./movement"
 
 const tetriminoToCoords = (tetrimino: ITetrimino) =>
   tetrimino.coordinates.reduce((dict, coordinate) => {
@@ -9,7 +15,8 @@ const tetriminoToCoords = (tetrimino: ITetrimino) =>
   }, {} as CoordinateDictionary)
 
 export const useCoordinates = (
-  tetrimino: ITetrimino,
+  activeTetrimino: ITetrimino,
+  brickPosition: Coordinate,
   dimensions: Dimensions
   // tetriminoPosition: Coordinate
 ) => {
@@ -28,64 +35,74 @@ export const useCoordinates = (
   const [allCoordinates, setAllCoordinates] = useState<CoordinateDictionary>({})
 
   useEffect(() => {
-    console.log(stationaryBrickCoordinates)
+    const tetrimino = positionTetrimino(activeTetrimino, brickPosition)
+
     setAllCoordinates({
       ...stationaryBrickCoordinates,
       ...tetriminoToCoords(tetrimino),
     })
-  }, [tetrimino, stationaryBrickCoordinates])
+  }, [activeTetrimino, stationaryBrickCoordinates, brickPosition])
 
-  const addStationaryCoordinates = useCallback(() => {
-    const boardWidth = dimensions[1]
+  const addStationaryCoordinates = useCallback(
+    (cb: Function) => {
+      const tetrimino = positionTetrimino(activeTetrimino, brickPosition)
+      const boardWidth = dimensions[1]
 
-    const newCoordinateDict = {
-      ...stationaryBrickCoordinates,
-      ...tetriminoToCoords(tetrimino),
-    }
-
-    const newCoordinateIndex = { ...stationaryBrickCoordinateIndex }
-
-    tetrimino.coordinates.forEach(([posY, posX]) => {
-      if (!newCoordinateIndex[posY]) {
-        newCoordinateIndex[posY] = {}
+      const newCoordinateDict = {
+        ...stationaryBrickCoordinates,
+        ...tetriminoToCoords(tetrimino),
       }
-      newCoordinateIndex[posY][posX] = true
-    })
+      const newCoordinateIndex = { ...stationaryBrickCoordinateIndex }
 
-    const affectedRows = tetrimino.coordinates
-      .map(coordinate => coordinate[0])
-      .filter((value, index, self) => {
-        return self.indexOf(value) === index
+      tetrimino.coordinates.forEach(([posY, posX]) => {
+        if (!newCoordinateIndex[posY]) {
+          newCoordinateIndex[posY] = {}
+        }
+        newCoordinateIndex[posY][posX] = true
       })
 
-    const rowsToRemove = affectedRows.filter(
-      row => Object.keys(newCoordinateIndex[row]).length >= boardWidth
-    )
-    rowsToRemove.push(15)
-    // delete coordinates and indexes
-    rowsToRemove.forEach(posY => {
-      Object.keys(newCoordinateIndex[posY]).forEach(posX => {
-        delete newCoordinateDict[String([posY, Number(posX)])]
-      })
-      delete newCoordinateIndex[posY]
-
-      for (let row = posY - 1; row >= 0; --row) {
-        // update Dictionary
-        Object.entries(newCoordinateIndex[row]).forEach(([column]) => {
-          newCoordinateDict[row + 1][column] = newCoordinateDict[row][column]
+      const affectedRows = tetrimino.coordinates
+        .map(coordinate => coordinate[0])
+        .filter((value, index, self) => {
+          return self.indexOf(value) === index
         })
-        // shift indexes
-        newCoordinateIndex[Number(row) + 1] = newCoordinateIndex[row]
-      }
-    })
 
-    //shift rows down
+      const rowsToRemove = affectedRows.filter(
+        row => Object.keys(newCoordinateIndex[row]).length >= boardWidth
+      )
+      // delete coordinates and indexes
+      rowsToRemove.forEach(posY => {
+        Object.keys(newCoordinateIndex[posY]).forEach(posX => {
+          delete newCoordinateDict[String([posY, Number(posX)])]
+        })
+        delete newCoordinateIndex[posY]
 
-    setStationaryBrickCoordinates(newCoordinateDict)
-    setStationaryBrickCoordinateIndex(newCoordinateIndex)
+        for (let row = posY - 1; row >= 0; --row) {
+          // update Dictionary
+          Object.entries(newCoordinateIndex[row] || {}).forEach(([column]) => {
+            newCoordinateDict[String([row + 1, column])] =
+              newCoordinateDict[String([row, column])]
+            delete newCoordinateDict[String([row, column])]
+          })
+          // shift indexes
+          newCoordinateIndex[Number(row) + 1] = newCoordinateIndex[row]
+          delete newCoordinateIndex[row]
+        }
+      })
 
-    return rowsToRemove.length
-  }, [stationaryBrickCoordinates, stationaryBrickCoordinateIndex, tetrimino])
+      setStationaryBrickCoordinates(newCoordinateDict)
+      setStationaryBrickCoordinateIndex(newCoordinateIndex)
+
+      cb()
+      return rowsToRemove.length
+    },
+    [
+      stationaryBrickCoordinates,
+      stationaryBrickCoordinateIndex,
+      activeTetrimino,
+      brickPosition,
+    ]
+  )
 
   return {
     allCoordinates,

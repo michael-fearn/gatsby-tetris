@@ -1,117 +1,128 @@
-import { useState, useEffect, useCallback } from "react"
+import { useCallback } from "react"
 import { ITetrimino } from "./tetriminos"
-import {
-  Dimensions,
-  CoordinateDictionary,
-  CoordinateIndex,
-  Coordinate,
-} from "../types"
+import { Dimensions, CoordinateDictionary, Coordinate } from "../types"
 
-function shiftCoordinates(
+const shiftCoordinate = (
+  coordinate: Coordinate,
+  shift: Coordinate
+): Coordinate => [coordinate[0] + shift[0], coordinate[1] + shift[1]]
+
+const shiftCoordinates = (
   coordinates: Coordinate[],
   shift: Coordinate
-): Coordinate[] {
+): Coordinate[] => {
   return coordinates.map(coordinate => {
-    return [coordinate[0] + shift[0], coordinate[1] + shift[1]]
+    return shiftCoordinate(coordinate, shift)
   })
 }
 
-function willCollide(
-  coordinates: Coordinate[],
-  dimensions: Dimensions,
-  coordinateDict: CoordinateDictionary
-) {
-  return coordinates.some(
-    ([posY, posX]) =>
-      0 > posX && posX > dimensions[1] && coordinateDict[String([posY, posX])]
-  )
-}
-
-const move = (
+export const positionTetrimino = (
   tetrimino: ITetrimino,
-  dimensions: Dimensions,
-  coordinateDict: CoordinateDictionary,
-  setActiveTetrimino: React.Dispatch<React.SetStateAction<ITetrimino>>
-) => (shift: Coordinate, cb: Function = () => {}) => {
-  const newPosition = shiftCoordinates(tetrimino.coordinates, shift)
-  !willCollide(newPosition, dimensions, coordinateDict)
-    ? setActiveTetrimino({ ...tetrimino, coordinates: newPosition })
-    : cb()
-}
-
-const detectEnvironmentCollision = (
-  dimensions: Dimensions,
-  coordinatesDict: CoordinateDictionary
+  brickPosition: Coordinate
 ) => {
-  return (coordinates: Coordinate[]) =>
-    !willCollide(coordinates, dimensions, coordinatesDict)
-}
-const moveAndShift = (
-  coordinates: Coordinate[],
-  dimensions,
-  coordinatesDict: CoordinateDictionary
-) => {
-  const canMove = detectEnvironmentCollision(dimensions, coordinatesDict)
-
-  if (!canMove(coordinates)) {
-    if (canMove(shiftCoordinates(coordinates, [0, 1]))) {
-      return shiftCoordinates(coordinates, [0, 1])
-    }
-    if (canMove(shiftCoordinates(coordinates, [0, -1]))) {
-      return shiftCoordinates(coordinates, [0, -1])
-    }
+  return {
+    ...tetrimino,
+    coordinates: shiftCoordinates(tetrimino.coordinates, brickPosition),
   }
-  return coordinates
 }
 
 export const useMovement = (
   tetrimino: ITetrimino,
   setActiveTetrimino: React.Dispatch<React.SetStateAction<ITetrimino>>,
+  brickPosition: Coordinate,
+  setBrickPosition: React.Dispatch<React.SetStateAction<[number, number]>>,
   dimensions: Dimensions,
   coordinatesDict: CoordinateDictionary
 ) => {
-  const rotateClockwise = useCallback(() => {
-    const coordinates: Coordinate[] = tetrimino.coordinates.map(
-      ([posY, posX]) => [posX, -posY]
-    )
-    const newCoordinates = moveAndShift(
-      coordinates,
-      dimensions,
-      coordinatesDict
-    )
-    setActiveTetrimino({ ...tetrimino, coordinates: newCoordinates })
-  }, [tetrimino])
+  const willCollide = useCallback(
+    (coordinates: Coordinate[]) => {
+      return coordinates.every(([posY, posX]) => {
+        const isClearLeft = 0 <= posX
+        const isClearRight = posX < dimensions[1]
+        const isClearTop = 0 <= posY
+        const isClearBottom = posY < dimensions[0]
+        const isClearEnvironment = !coordinatesDict[String([posY, posX])]
+        return (
+          isClearLeft &&
+          isClearRight &&
+          isClearTop &&
+          isClearBottom &&
+          isClearEnvironment
+        )
+      })
+    },
+    [dimensions, coordinatesDict]
+  )
+  const moveBrick = useCallback(
+    (shift: Coordinate) => {
+      setBrickPosition(shiftCoordinate(brickPosition, shift))
+    },
+    [brickPosition]
+  )
 
-  const rotateCounterClockwise = useCallback(() => {
-    const coordinates: Coordinate[] = tetrimino.coordinates.map(
-      ([posY, posX]) => [-posX, posY]
-    )
-
-    const newCoordinates = moveAndShift(
-      coordinates,
-      dimensions,
-      coordinatesDict
-    )
-    setActiveTetrimino({ ...tetrimino, coordinates: newCoordinates })
-  }, [tetrimino])
-
-  const moveLeft = useCallback(() => {
-    move(tetrimino, dimensions, coordinatesDict, setActiveTetrimino)([0, -1])
-  }, [tetrimino, dimensions, coordinatesDict])
-  const moveRight = useCallback(() => {
-    move(tetrimino, dimensions, coordinatesDict, setActiveTetrimino)([0, 1])
-  }, [tetrimino, dimensions, coordinatesDict])
-  const moveDown = useCallback(
-    (cb: Function) => {
-      move(
-        tetrimino,
-        dimensions,
-        coordinatesDict,
-        setActiveTetrimino
-      )([1, 0], cb)
+  const shift = useCallback(
+    (shift: Coordinate) => {
+      const positionedTetrimino = positionTetrimino(tetrimino, brickPosition)
+      if (
+        willCollide(shiftCoordinates(positionedTetrimino.coordinates, shift))
+      ) {
+        moveBrick(shift)
+      }
     },
     [tetrimino, dimensions, coordinatesDict]
   )
+
+  const rotate = useCallback(
+    (remapFunc: (Coordinate) => Coordinate) => {
+      const rotatedTetrimino: ITetrimino = {
+        ...tetrimino,
+        coordinates: tetrimino.coordinates.map(remapFunc),
+      }
+      const positionedTetrimino = positionTetrimino(
+        rotatedTetrimino,
+        brickPosition
+      )
+
+      if (!willCollide(positionedTetrimino.coordinates)) {
+        if (
+          willCollide(shiftCoordinates(positionedTetrimino.coordinates, [0, 1]))
+        ) {
+          shift([0, 1])
+          setActiveTetrimino(rotatedTetrimino)
+        }
+
+        if (
+          willCollide(
+            shiftCoordinates(positionedTetrimino.coordinates, [0, -1])
+          )
+        ) {
+          shift([0, -1])
+          setActiveTetrimino(rotatedTetrimino)
+        }
+      } else setActiveTetrimino(rotatedTetrimino)
+    },
+    [tetrimino, brickPosition]
+  )
+
+  const rotateClockwise = useCallback(() => {
+    rotate(([posY, posX]) => [posX, -posY])
+  }, [rotate])
+
+  const rotateCounterClockwise = useCallback(() => {
+    rotate(([posY, posX]) => [-posX, posY])
+  }, [rotate])
+
+  const moveLeft = useCallback(() => {
+    return shift([0, -1])
+  }, [shift])
+
+  const moveRight = useCallback(() => {
+    return shift([0, 1])
+  }, [shift])
+
+  const moveDown = useCallback(() => {
+    return shift([1, 0])
+  }, [shift])
 
   return {
     rotateClockwise,
