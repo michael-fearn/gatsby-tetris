@@ -53,23 +53,19 @@ export const useMovement = (
     },
     [dimensions, coordinatesDict]
   )
-  const moveBrick = useCallback(
-    (shift: Coordinate) => {
-      setBrickPosition(shiftCoordinate(brickPosition, shift))
-    },
-    [brickPosition]
-  )
-
+  
   const shift = useCallback(
     (shift: Coordinate) => {
       const positionedTetrimino = positionTetrimino(tetrimino, brickPosition)
+      console.log(positionedTetrimino.coordinates)
+
       if (
         willCollide(shiftCoordinates(positionedTetrimino.coordinates, shift))
       ) {
-        moveBrick(shift)
+        setBrickPosition(shiftCoordinate(brickPosition, shift))
       }
     },
-    [tetrimino, dimensions, coordinatesDict]
+    [tetrimino, dimensions, coordinatesDict, brickPosition]
   )
 
   const rotate = useCallback(

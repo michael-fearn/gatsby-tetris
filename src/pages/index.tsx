@@ -46,7 +46,7 @@ const IndexPage = () => {
       window.removeEventListener("keydown", clockwise)
       window.removeEventListener("keydown", counterClockwise)
     }
-  }, [moveDown, moveLeft, moveRight])
+  }, [moveDown, moveLeft, moveRight, rotateClockwise, rotateCounterClockwise])
 
   return (
     <div>
