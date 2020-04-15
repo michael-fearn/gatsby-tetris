@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react"
 
 import { useTetriminos, ITetrimino } from "../hooks/tetriminos"
-import { Coordinate } from "../types"
+import { Coordinate, CoordinateDictionary } from "../types"
 import { useCoordinates } from "../hooks/coordinates"
 import { useMovement } from "../hooks/movement"
 import { useBindings } from "./bindings"
@@ -29,6 +29,11 @@ export const positionTetrimino = (
     coordinates: shiftCoordinates(tetrimino.coordinates, brickPosition),
   }
 }
+export const tetriminoToCoords = (tetrimino: ITetrimino) =>
+  tetrimino.coordinates.reduce((dict, coordinate) => {
+    dict[String(coordinate)] = tetrimino.color
+    return dict
+  }, {} as CoordinateDictionary)
 
 export const useTetris = (initialDimensions: [number, number]) => {
   const [dimensions, setDimensions] = useState(initialDimensions)
@@ -123,9 +128,11 @@ export const useTetris = (initialDimensions: [number, number]) => {
   return {
     dimensions,
     activeTetrimino,
+    tetriminoToCoords,
     nextTetrimino,
     replaceCurrentTetrimino,
     allCoordinates,
+    shiftCoordinates,
     setBrickPosition,
     addStationaryCoordinates,
     moveLeft,

@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react"
 
 import { Board } from "../components/board"
-import { useTetris } from "../hooks/tetris"
-import { Coordinate } from "../types"
+import { useTetris, shiftCoordinates } from "../hooks/tetris"
+import { Coordinate, CoordinateDictionary } from "../types"
 
 const IndexPage = () => {
   const [dimensions, setDimensions] = useState<Coordinate>([16, 10])
 
   const {
     allCoordinates,
+    tetriminoToCoords,
     nextTetrimino,
+    shiftCoordinates,
     activeTetrimino,
     setBrickPosition,
     rotateClockwise,
@@ -25,6 +27,13 @@ const IndexPage = () => {
 
   return (
     <div>
+      <Board
+        dimensions={[5, 5]}
+        points={tetriminoToCoords({
+          color: nextTetrimino.color,
+          coordinates: shiftCoordinates(nextTetrimino.coordinates, [2, 2]),
+        })}
+      />
       <Board dimensions={dimensions} points={allCoordinates} />
       <br />
       <h3>Blocks move every {speed}/ms</h3>
