@@ -71,11 +71,11 @@ export const useTetris = (initialDimensions: [number, number]) => {
   }, [])
 
   const [gameTicker, setGameTicker] = useState(0)
-  const [speed, setSpeed] = useState(10)
+  const [speed, setSpeed] = useState(30)
 
   const increaseSpeed = useCallback(
     (rowsRemoved: number) => {
-      setSpeed(speed + 2 * rowsRemoved)
+      setSpeed(speed - 2 * rowsRemoved)
     },
     [speed]
   )
