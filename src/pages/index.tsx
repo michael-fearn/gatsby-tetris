@@ -36,7 +36,7 @@ const IndexPage = () => {
       />
       <Board dimensions={dimensions} points={allCoordinates} />
       <br />
-      <h3>Blocks move every {speed}/ms</h3>
+      <h3>Blocks move every {speed}0/ms</h3>
       <label htmlFor="">Height</label>
       <input
         type="number"

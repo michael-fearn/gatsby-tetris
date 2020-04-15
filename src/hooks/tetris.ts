@@ -114,17 +114,6 @@ export const useTetris = (initialDimensions: [number, number]) => {
     setTimeout(() => setGameTicker(gameTicker + 1), 10) // divisible by 10
   }, [gameTicker])
 
-  useEffect(() => {})
-  // useEffect(() => {
-  //   const gameTimer = setInterval(() => {
-  //     moveDown(getNextTetrimino)
-  //     // setBrickPosition(shiftCoordinate(brickPosition, [1, 0]))
-  //   }, 100)
-  //   return () => {
-  //     clearInterval(gameTimer)
-  //   }
-  // }, [brickPosition, getNextTetrimino])
-
   return {
     dimensions,
     activeTetrimino,

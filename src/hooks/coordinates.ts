@@ -16,15 +16,11 @@ export const useCoordinates = (
 ) => {
   const [stationaryBrickCoordinates, setStationaryBrickCoordinates] = useState<
     CoordinateDictionary
-  >({
-    "15,0": "red",
-    "15,1": "red",
-    "15,2": "red",
-  })
+  >({})
   const [
     stationaryBrickCoordinateIndex,
     setStationaryBrickCoordinateIndex,
-  ] = useState<CoordinateIndex>({ "15": { "0": true, "1": true, "2": true } })
+  ] = useState<CoordinateIndex>({})
 
   const [allCoordinates, setAllCoordinates] = useState<CoordinateDictionary>({})
 
