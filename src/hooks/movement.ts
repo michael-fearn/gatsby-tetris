@@ -1,13 +1,13 @@
-import { useCallback } from "react"
+import { useCallback, useEffect } from "react"
 import { ITetrimino } from "./tetriminos"
 import { Dimensions, CoordinateDictionary, Coordinate } from "../types"
 
-const shiftCoordinate = (
+export const shiftCoordinate = (
   coordinate: Coordinate,
   shift: Coordinate
 ): Coordinate => [coordinate[0] + shift[0], coordinate[1] + shift[1]]
 
-const shiftCoordinates = (
+export const shiftCoordinates = (
   coordinates: Coordinate[],
   shift: Coordinate
 ): Coordinate[] => {
@@ -53,9 +53,9 @@ export const useMovement = (
     },
     [dimensions, coordinatesDict]
   )
-  
+
   const shift = useCallback(
-    (shift: Coordinate) => {
+    (shift: Coordinate, cb?: Function) => {
       const positionedTetrimino = positionTetrimino(tetrimino, brickPosition)
       console.log(positionedTetrimino.coordinates)
 
@@ -63,6 +63,8 @@ export const useMovement = (
         willCollide(shiftCoordinates(positionedTetrimino.coordinates, shift))
       ) {
         setBrickPosition(shiftCoordinate(brickPosition, shift))
+      } else {
+        if (cb) cb()
       }
     },
     [tetrimino, dimensions, coordinatesDict, brickPosition]
@@ -116,9 +118,34 @@ export const useMovement = (
     return shift([0, 1])
   }, [shift])
 
-  const moveDown = useCallback(() => {
-    return shift([1, 0])
-  }, [shift])
+  const moveDown = useCallback(
+    (cb?: Function) => {
+      return shift([1, 0], cb)
+    },
+    [shift]
+  )
+
+  useEffect(() => {
+    const down = event => (event.key === "ArrowDown" ? moveDown() : null)
+    const left = event => (event.key === "ArrowLeft" ? moveLeft() : null)
+    const right = event => (event.key === "ArrowRight" ? moveRight() : null)
+    const clockwise = event => (event.key === "w" ? rotateClockwise() : null)
+    const counterClockwise = event =>
+      event.key === "q" ? rotateCounterClockwise() : null
+    window.addEventListener("keydown", down)
+    window.addEventListener("keydown", left)
+    window.addEventListener("keydown", right)
+    window.addEventListener("keydown", clockwise)
+    window.addEventListener("keydown", counterClockwise)
+
+    return () => {
+      window.removeEventListener("keydown", down)
+      window.removeEventListener("keydown", left)
+      window.removeEventListener("keydown", right)
+      window.removeEventListener("keydown", clockwise)
+      window.removeEventListener("keydown", counterClockwise)
+    }
+  }, [moveDown, moveLeft, moveRight, rotateClockwise, rotateCounterClockwise])
 
   return {
     rotateClockwise,

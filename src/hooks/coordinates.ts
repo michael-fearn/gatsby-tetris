@@ -34,6 +34,11 @@ export const useCoordinates = (
 
   const [allCoordinates, setAllCoordinates] = useState<CoordinateDictionary>({})
 
+  const reset = useCallback(() => {
+    setStationaryBrickCoordinates({})
+    setStationaryBrickCoordinateIndex({})
+  }, [])
+
   useEffect(() => {
     const tetrimino = positionTetrimino(activeTetrimino, brickPosition)
 
@@ -105,6 +110,7 @@ export const useCoordinates = (
   )
 
   return {
+    reset,
     allCoordinates,
     addStationaryCoordinates,
     stationaryBrickCoordinates,
