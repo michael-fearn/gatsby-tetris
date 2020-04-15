@@ -1,30 +1,7 @@
 import { useCallback, useEffect } from "react"
 import { ITetrimino } from "./tetriminos"
 import { Dimensions, CoordinateDictionary, Coordinate } from "../types"
-
-export const shiftCoordinate = (
-  coordinate: Coordinate,
-  shift: Coordinate
-): Coordinate => [coordinate[0] + shift[0], coordinate[1] + shift[1]]
-
-export const shiftCoordinates = (
-  coordinates: Coordinate[],
-  shift: Coordinate
-): Coordinate[] => {
-  return coordinates.map(coordinate => {
-    return shiftCoordinate(coordinate, shift)
-  })
-}
-
-export const positionTetrimino = (
-  tetrimino: ITetrimino,
-  brickPosition: Coordinate
-) => {
-  return {
-    ...tetrimino,
-    coordinates: shiftCoordinates(tetrimino.coordinates, brickPosition),
-  }
-}
+import { shiftCoordinate, shiftCoordinates, positionTetrimino } from "./tetris"
 
 export const useMovement = (
   tetrimino: ITetrimino,
@@ -125,27 +102,7 @@ export const useMovement = (
     [shift]
   )
 
-  useEffect(() => {
-    const down = event => (event.key === "ArrowDown" ? moveDown() : null)
-    const left = event => (event.key === "ArrowLeft" ? moveLeft() : null)
-    const right = event => (event.key === "ArrowRight" ? moveRight() : null)
-    const clockwise = event => (event.key === "w" ? rotateClockwise() : null)
-    const counterClockwise = event =>
-      event.key === "q" ? rotateCounterClockwise() : null
-    window.addEventListener("keydown", down)
-    window.addEventListener("keydown", left)
-    window.addEventListener("keydown", right)
-    window.addEventListener("keydown", clockwise)
-    window.addEventListener("keydown", counterClockwise)
 
-    return () => {
-      window.removeEventListener("keydown", down)
-      window.removeEventListener("keydown", left)
-      window.removeEventListener("keydown", right)
-      window.removeEventListener("keydown", clockwise)
-      window.removeEventListener("keydown", counterClockwise)
-    }
-  }, [moveDown, moveLeft, moveRight, rotateClockwise, rotateCounterClockwise])
 
   return {
     rotateClockwise,

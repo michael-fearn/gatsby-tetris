@@ -3,15 +3,52 @@ import React, { useState, useEffect, useCallback } from "react"
 import { useTetriminos, ITetrimino } from "../hooks/tetriminos"
 import { Coordinate } from "../types"
 import { useCoordinates } from "../hooks/coordinates"
-import { useMovement, shiftCoordinate } from "../hooks/movement"
+import { useMovement } from "../hooks/movement"
+import { useBindings } from "./bindings"
 
-export const useTetris = (dimensions: [number, number]) => {
+export const shiftCoordinate = (
+  coordinate: Coordinate,
+  shift: Coordinate
+): Coordinate => [coordinate[0] + shift[0], coordinate[1] + shift[1]]
+
+export const shiftCoordinates = (
+  coordinates: Coordinate[],
+  shift: Coordinate
+): Coordinate[] => {
+  return coordinates.map(coordinate => {
+    return shiftCoordinate(coordinate, shift)
+  })
+}
+
+export const positionTetrimino = (
+  tetrimino: ITetrimino,
+  brickPosition: Coordinate
+) => {
+  return {
+    ...tetrimino,
+    coordinates: shiftCoordinates(tetrimino.coordinates, brickPosition),
+  }
+}
+
+let GameTime
+let GameTicker = 0
+
+export const useTetris = (initialDimensions: [number, number]) => {
+  const [dimensions, setDimensions] = useState(initialDimensions)
   const {
     activeTetrimino,
     setActiveTetrimino,
     nextTetrimino,
     replaceCurrentTetrimino,
   } = useTetriminos(dimensions)
+
+  useEffect(() => {
+    if (!GameTime) {
+      GameTime = setInterval(() => {
+        GameTicker++
+      }, 100) // divisible by 10
+    }
+  }, [])
 
   const [brickPosition, setBrickPosition] = useState<Coordinate>([
     1,
@@ -53,11 +90,21 @@ export const useTetris = (dimensions: [number, number]) => {
     [addStationaryCoordinates, replaceCurrentTetrimino]
   )
 
+  const bindings = [
+    { key: "ArrowDown", fn: moveDown },
+    { key: "ArrowLeft", fn: moveLeft },
+    { key: "ArrowRight", fn: moveRight },
+    { key: "w", fn: rotateClockwise },
+    { key: "q", fn: rotateCounterClockwise },
+  ]
+
+  useBindings(bindings)
+
   useEffect(() => {
     const gameTimer = setInterval(() => {
       moveDown(getNextTetrimino)
       // setBrickPosition(shiftCoordinate(brickPosition, [1, 0]))
-    }, 800)
+    }, 100)
     return () => {
       clearInterval(gameTimer)
     }

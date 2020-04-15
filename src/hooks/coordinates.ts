@@ -6,7 +6,7 @@ import {
   CoordinateIndex,
   Coordinate,
 } from "../types"
-import { positionTetrimino } from "./movement"
+import { positionTetrimino } from "./tetris"
 
 const tetriminoToCoords = (tetrimino: ITetrimino) =>
   tetrimino.coordinates.reduce((dict, coordinate) => {
