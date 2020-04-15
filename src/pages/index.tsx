@@ -17,20 +17,17 @@ const IndexPage = () => {
     reset,
     moveRight,
     moveDown,
+    speed,
     rotateCounterClockwise,
     replaceCurrentTetrimino,
     addStationaryCoordinates, // for testing
   } = useTetris(dimensions)
 
-  const setBrickCallback = useCallback(() => {
-    replaceCurrentTetrimino()
-    setBrickPosition([1, Math.floor(dimensions[1] / 2 + 1)])
-  }, [])
-
-
   return (
     <div>
       <Board dimensions={dimensions} points={allCoordinates} />
+      <br />
+      <h3>Block Speed: {speed}</h3>
       <label htmlFor="">Height</label>
       <input
         type="number"

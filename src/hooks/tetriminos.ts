@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react"
 export interface ITetrimino {
   coordinates: Coordinate[]
   color: string
+
 }
 
 const i: ITetrimino = {

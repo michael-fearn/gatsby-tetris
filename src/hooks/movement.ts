@@ -34,7 +34,6 @@ export const useMovement = (
   const shift = useCallback(
     (shift: Coordinate, cb?: Function) => {
       const positionedTetrimino = positionTetrimino(tetrimino, brickPosition)
-      console.log(positionedTetrimino.coordinates)
 
       if (
         willCollide(shiftCoordinates(positionedTetrimino.coordinates, shift))
@@ -101,8 +100,6 @@ export const useMovement = (
     },
     [shift]
   )
-
-
 
   return {
     rotateClockwise,

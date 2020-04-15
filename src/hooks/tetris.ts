@@ -30,9 +30,6 @@ export const positionTetrimino = (
   }
 }
 
-let GameTime
-let GameTicker = 0
-
 export const useTetris = (initialDimensions: [number, number]) => {
   const [dimensions, setDimensions] = useState(initialDimensions)
   const {
@@ -41,14 +38,6 @@ export const useTetris = (initialDimensions: [number, number]) => {
     nextTetrimino,
     replaceCurrentTetrimino,
   } = useTetriminos(dimensions)
-
-  useEffect(() => {
-    if (!GameTime) {
-      GameTime = setInterval(() => {
-        GameTicker++
-      }, 100) // divisible by 10
-    }
-  }, [])
 
   const [brickPosition, setBrickPosition] = useState<Coordinate>([
     1,
@@ -81,14 +70,24 @@ export const useTetris = (initialDimensions: [number, number]) => {
     setBrickPosition([1, Math.floor(dimensions[1] / 2 + 1)])
   }, [])
 
-  const getNextTetrimino = useCallback(
-    () =>
-      addStationaryCoordinates(() => {
-        replaceCurrentTetrimino()
-        gotoDefaultBrickPosition()
-      }),
-    [addStationaryCoordinates, replaceCurrentTetrimino]
+  const [gameTicker, setGameTicker] = useState(0)
+  const [speed, setSpeed] = useState(10)
+
+  const increaseSpeed = useCallback(
+    (rowsRemoved: number) => {
+      setSpeed(speed + 2 * rowsRemoved)
+    },
+    [speed]
   )
+
+  const getNextTetrimino = useCallback(() => {
+    const rowsRemoved = addStationaryCoordinates(() => {
+      replaceCurrentTetrimino()
+      gotoDefaultBrickPosition()
+    })
+
+    increaseSpeed(rowsRemoved)
+  }, [addStationaryCoordinates, replaceCurrentTetrimino, increaseSpeed])
 
   const bindings = [
     { key: "ArrowDown", fn: moveDown },
@@ -101,14 +100,25 @@ export const useTetris = (initialDimensions: [number, number]) => {
   useBindings(bindings)
 
   useEffect(() => {
-    const gameTimer = setInterval(() => {
+    if (!(gameTicker % speed)) {
       moveDown(getNextTetrimino)
-      // setBrickPosition(shiftCoordinate(brickPosition, [1, 0]))
-    }, 100)
-    return () => {
-      clearInterval(gameTimer)
     }
-  }, [brickPosition, getNextTetrimino])
+  }, [gameTicker, speed])
+
+  useEffect(() => {
+    setTimeout(() => setGameTicker(gameTicker + 1), 10) // divisible by 10
+  }, [gameTicker])
+
+  useEffect(() => {})
+  // useEffect(() => {
+  //   const gameTimer = setInterval(() => {
+  //     moveDown(getNextTetrimino)
+  //     // setBrickPosition(shiftCoordinate(brickPosition, [1, 0]))
+  //   }, 100)
+  //   return () => {
+  //     clearInterval(gameTimer)
+  //   }
+  // }, [brickPosition, getNextTetrimino])
 
   return {
     dimensions,
@@ -120,6 +130,7 @@ export const useTetris = (initialDimensions: [number, number]) => {
     addStationaryCoordinates,
     moveLeft,
     moveRight,
+    speed,
     moveDown,
     reset,
     rotateClockwise,
