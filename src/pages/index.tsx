@@ -27,14 +27,19 @@ const IndexPage = () => {
 
   return (
     <div>
-      <Board
-        dimensions={[5, 5]}
-        points={tetriminoToCoords({
-          color: nextTetrimino.color,
-          coordinates: shiftCoordinates(nextTetrimino.coordinates, [2, 2]),
-        })}
-      />
-      <Board dimensions={dimensions} points={allCoordinates} />
+      <div style={{ display: "flex" }}>
+        <div>
+          <h4>Next Block</h4>
+          <Board
+            dimensions={[4, 4]}
+            points={tetriminoToCoords({
+              color: nextTetrimino.color,
+              coordinates: shiftCoordinates(nextTetrimino.coordinates, [1, 1]),
+            })}
+          />
+        </div>
+        <Board dimensions={dimensions} points={allCoordinates} />
+      </div>
       <br />
       <h3>Blocks move every {speed}0/ms</h3>
       <label htmlFor="">Height</label>
